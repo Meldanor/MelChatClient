@@ -20,15 +20,15 @@ public class NetworkHandler {
     private SocketChannel socketChannel;
     private SelectableChannel stdIn;
 
-    public NetworkHandler(String[] connInfo) throws Exception {
-        createConnection(connInfo);
+    public NetworkHandler(String host, String port) throws Exception {
+        createConnection(host, port);
     }
 
-    private void createConnection(String[] connInfo) throws Exception {
+    private void createConnection(String host, String port) throws Exception {
 
         selector = Selector.open();
         // Connect to the server
-        SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(connInfo[0], Integer.parseInt(connInfo[1])));
+        SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(host, Integer.parseInt(port)));
         socketChannel.register(selector, SelectionKey.OP_READ);
         // Wrapper for console input
         SystemInPipe stdinPipe = new SystemInPipe();
@@ -37,7 +37,6 @@ public class NetworkHandler {
         stdinPipe.start();
         stdIn.register(selector, SelectionKey.OP_READ);
     }
-
     public void clientLoop() {
         ByteBuffer buffer = ByteBuffer.allocate(4096);
         try {

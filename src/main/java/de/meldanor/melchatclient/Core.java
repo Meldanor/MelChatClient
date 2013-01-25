@@ -13,7 +13,7 @@ public class Core {
         String[] connInfo = parseArguments(args);
         NetworkHandler nHandler = null;
         try {
-            nHandler = new NetworkHandler(connInfo);
+            nHandler = new NetworkHandler(connInfo[0], connInfo[1]);
         } catch (Exception e) {
             e.printStackTrace();
             return;
