@@ -18,7 +18,8 @@ public class Core {
             e.printStackTrace();
             return;
         }
-        System.out.println("Client connected!");
+        System.out.println("Client started!");
+        nHandler.clientLoop();
 
     }
 
