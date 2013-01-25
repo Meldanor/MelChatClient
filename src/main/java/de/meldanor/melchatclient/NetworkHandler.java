@@ -29,6 +29,7 @@ public class NetworkHandler {
         selector = Selector.open();
         // Connect to the server
         SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(host, Integer.parseInt(port)));
+        socketChannel.configureBlocking(false);
         socketChannel.register(selector, SelectionKey.OP_READ);
         // Wrapper for console input
         SystemInPipe stdinPipe = new SystemInPipe();
