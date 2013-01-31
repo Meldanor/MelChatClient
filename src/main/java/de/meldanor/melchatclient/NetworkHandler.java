@@ -1,5 +1,6 @@
 package de.meldanor.melchatclient;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
@@ -28,7 +29,7 @@ public class NetworkHandler {
 
         selector = Selector.open();
         // Connect to the server
-        SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(host, Integer.parseInt(port)));
+        socketChannel = SocketChannel.open(new InetSocketAddress(host, Integer.parseInt(port)));
         socketChannel.configureBlocking(false);
         socketChannel.register(selector, SelectionKey.OP_READ);
         // Wrapper for console input
@@ -38,10 +39,13 @@ public class NetworkHandler {
         stdinPipe.start();
         stdIn.register(selector, SelectionKey.OP_READ);
     }
+
+    private boolean clientIsRunning = true;
+
     public void clientLoop() {
-        ByteBuffer buffer = ByteBuffer.allocate(4096);
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4096);
         try {
-            while (true) {
+            while (clientIsRunning) {
                 int rdyChannels = selector.select(0);
                 if (rdyChannels == 0)
                     continue;
@@ -54,14 +58,22 @@ public class NetworkHandler {
                         // Server want something
                         if (key.channel() instanceof SocketChannel) {
                             SocketChannel sockChannel = (SocketChannel) key.channel();
-                            sockChannel.read(buffer);
-                            WritableByteChannel stdout = Channels.newChannel(System.out);
-                            stdout.write(buffer);
+                            try {
+                                sockChannel.read(buffer);
+                                buffer.flip();
+                                WritableByteChannel stdout = Channels.newChannel(System.out);
+                                stdout.write(buffer);
+                            } catch (IOException IOE) {
+                                clientIsRunning = false;
+                                System.out.println("Server closed connection");
+                            }
+
                         }
                         // Client want something
                         else {
                             ReadableByteChannel channel = (ReadableByteChannel) stdIn;
                             channel.read(buffer);
+                            buffer.flip();
                             socketChannel.write(buffer);
                         }
                     }
